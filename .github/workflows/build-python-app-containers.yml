@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
-    # IMPORTANT: allow GITHUB_TOKEN to push to GHCR
+    # Allow GITHUB_TOKEN to push to GHCR
     permissions:
       contents: read
       packages: write
@@ -85,4 +85,4 @@ jobs:
         labels: ${{ steps.meta.outputs.labels }}
         file: build/apps/Dockerfile.python-app
         # Don't build python sample apps for arm/v7 as many modules don't provide armv7 wheels.
-        platforms: linux/amd
+        platforms: linux/amd64,linux/arm64
