@@ -64,7 +64,7 @@ jobs:
       uses: docker/metadata-action@v5
       id: meta
       with:
-        images: ghcr.io/project-akri/akri/${{ matrix.component }}
+        images: ghcr.io/project-akri/examples/${{ matrix.component }}
         labels: |
           org.opencontainers.image.title=akri-${{matrix.component}}
           org.opencontainers.image.description=Akri Sample App
