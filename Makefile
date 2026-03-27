@@ -47,7 +47,7 @@ apps: anomaly-detection-app video-streaming-app
 		--file build/apps/Dockerfile.python-app .
 
 .PHONY: brokers
-brokers: udev-video-broker onvif-video-broker
+brokers: udev-video-broker onvif-video-broker opcua-monitoring-broker
 
 udev-video-broker:
 	docker buildx build $(COMMON_DOCKER_BUILD_ARGS) \
@@ -81,3 +81,8 @@ onvif-video-broker-arm64:
 ifneq (,or(findstring(aarch64,$(PLATFORMS)),findstring(arm64,$(PLATFORMS))))
 	docker buildx build $(ONVIF_BUILDX_ARGS) $(if $(PUSH), --iidfile onvif-video-broker.sha-arm64) --build-arg OUTPUT_PLATFORM_TAG=$(USE_OPENCV_BASE_VERSION)-$(ARM64V8_SUFFIX) --build-arg DOTNET_PUBLISH_RUNTIME=linux-arm64 .
 endif
+
+opcua-monitoring-broker:
+	docker buildx build $(COMMON_DOCKER_BUILD_ARGS) \
+		--tag "$(PREFIX)/$@:$(LABEL_PREFIX)" \
+		--file build/brokers/Dockerfile.opcua-monitoring-broker .
