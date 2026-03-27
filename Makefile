@@ -29,18 +29,24 @@ TIMESTAMP := $(shell date +"%Y%m%d_%H%M%S")
 VERSION_LABEL=v$(VERSION)-$(TIMESTAMP)
 LABEL_PREFIX ?= $(VERSION_LABEL)
 
-%-app:
-	docker buildx build $(COMMON_DOCKER_BUILD_ARGS) --build-arg APPLICATION=$@ --tag "$(PREFIX)/$@:$(LABEL_PREFIX)" --file $(DOCKERFILE_DIR)/Dockerfile.python-app .
-
 .PHONY: all
-all: apps
+all: apps brokers
 
 .PHONY: apps
 apps: anomaly-detection-app video-streaming-app
 
 %-app:
 	docker buildx build $(COMMON_DOCKER_BUILD_ARGS) \
-		--build-arg APPLICATION=$@ \
 		--tag "$(PREFIX)/$@:$(LABEL_PREFIX)" \
+		--build-arg APPLICATION=$@ \
 		--file build/apps/Dockerfile.python-app .
 
+.PHONY: brokers
+brokers: udev-video-broker
+
+udev-video-broker:
+	docker buildx build $(COMMON_DOCKER_BUILD_ARGS) \
+		--tag "$(PREFIX)/$@:$(LABEL_PREFIX)" \
+		--build-arg EXTRA_CARGO_ARGS="$(if $(BUILD_RELEASE_FLAG), --release)" \
+		--file build/brokers/Dockerfile.rust \
+		brokers/$@
