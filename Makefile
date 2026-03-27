@@ -42,7 +42,7 @@ apps: anomaly-detection-app video-streaming-app
 		--file build/apps/Dockerfile.python-app .
 
 .PHONY: brokers
-brokers: udev-video-broker
+brokers: udev-video-broker opcua-monitoring-broker
 
 udev-video-broker:
 	docker buildx build $(COMMON_DOCKER_BUILD_ARGS) \
@@ -50,3 +50,8 @@ udev-video-broker:
 		--build-arg EXTRA_CARGO_ARGS="$(if $(BUILD_RELEASE_FLAG), --release)" \
 		--file build/brokers/Dockerfile.rust \
 		brokers/$@
+
+opcua-monitoring-broker:
+	docker buildx build $(COMMON_DOCKER_BUILD_ARGS) \
+		--tag "$(PREFIX)/$@:$(LABEL_PREFIX)" \
+		--file build/brokers/Dockerfile.opcua-monitoring-broker .
