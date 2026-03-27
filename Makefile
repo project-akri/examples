@@ -85,4 +85,5 @@ endif
 opcua-monitoring-broker:
 	docker buildx build $(COMMON_DOCKER_BUILD_ARGS) \
 		--tag "$(PREFIX)/$@:$(LABEL_PREFIX)" \
-		--file build/brokers/Dockerfile.opcua-monitoring-broker .
+		--file build/brokers/Dockerfile.opcua-monitoring-broker \
+		brokers/$@
