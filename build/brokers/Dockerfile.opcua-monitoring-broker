@@ -1,9 +1,9 @@
 FROM --platform=${BUILDPLATFORM}  mcr.microsoft.com/dotnet/sdk:6.0-bookworm-slim AS build
 
 WORKDIR /src
-COPY ["samples/brokers/opcua-monitoring-broker/opcua-monitoring-broker.csproj", "."]
+COPY ["brokers/opcua-monitoring-broker/opcua-monitoring-broker.csproj", "."]
 RUN dotnet restore "opcua-monitoring-broker.csproj"
-COPY ["samples/brokers/opcua-monitoring-broker", "."]
+COPY ["brokers/opcua-monitoring-broker", "."]
 
 ARG TARGETARCH
 RUN DOTNET_PUBLISH_RUNTIME="linux-$(echo ${TARGETARCH} | sed 's/amd/x/')"; \
