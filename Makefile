@@ -59,6 +59,7 @@ ifeq (1, $(PUSH))
 	docker buildx imagetools create --tag "$(PREFIX)/onvif-video-broker:$(LABEL_PREFIX)"
 endif
 
+USE_OPENCV_BASE_VERSION = 0.0.11
 ONVIF_BUILDX_PUSH_OUTPUT = type=image,name=$(PREFIX)/onvif-video-broker,push-by-digest=true,name-canonical=true,push=true
 ONVIF_BUILDX_ARGS = $(if $(LOAD), --load --tag $(PREFIX)/onvif-video-broker:$(LABEL_PREFIX)) $(if $(PUSH), --output $(ONVIF_BUILDX_PUSH_OUTPUT)) -f build/brokers/Dockerfile.onvif-video-broker
 
