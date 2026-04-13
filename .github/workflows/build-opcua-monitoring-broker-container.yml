@@ -1,29 +1,29 @@
-name: Build Rust Broker Containers
+name: Build OPC UA Monitoring Broker
 
 on:
   push:
     branches: [ main ]
     paths:
-    - .github/workflows/build-rust-broker-containers.yml
-    - build/brokers/Dockerfile.rust
-    - brokers/udev-video-broker/**
+    - .github/workflows/build-opcua-monitoring-broker-container.yml
+    - build/brokers/Dockerfile.opcua-monitoring-broker
+    - brokers/opcua-monitoring-broker/**
     - version.txt
   pull_request:
     branches: [ main ]
     paths:
-    - .github/workflows/build-rust-broker-containers.yml
-    - build/brokers/Dockerfile.rust
-    - brokers/udev-video-broker/**
+    - .github/workflows/build-opcua-monitoring-broker-container.yml
+    - build/brokers/Dockerfile.opcua-monitoring-broker
+    - brokers/opcua-monitoring-broker/**
     - version.txt
   release:
     types:
       - published
 
 jobs:
-  build-brokers:
+  build-broker:
     runs-on: ubuntu-latest
-    timeout-minutes: 50
-
+    timeout-minutes: 20
+    
     # Allow GITHUB_TOKEN to push to GHCR
     permissions:
       contents: read
@@ -32,7 +32,7 @@ jobs:
     strategy:
       matrix:
         component:
-          - udev-video-broker
+          - opcua-monitoring-broker
 
     steps:
     - name: Checkout the head commit of the branch
@@ -47,7 +47,6 @@ jobs:
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
-
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
@@ -66,21 +65,19 @@ jobs:
         images: ghcr.io/project-akri/examples/${{ matrix.component }}
         labels: |
           org.opencontainers.image.title=akri-${{ matrix.component }}
-          org.opencontainers.image.description=Akri sample udev broker
+          org.opencontainers.image.description="Akri sample OPC UA monitoring broker"
         tags: |
           type=ref,event=pr
           type=semver,pattern=v{{version}}
           type=semver,pattern=v{{major}}.{{minor}}
-          type=raw,value=v${{ steps.version-string.outputs.version }}-dev,enable=${{ github.event_name != 'release' }}
+          type=raw,value=v${{steps.version-string.outputs.version}}-dev,enable=${{github.event_name != 'release'}}
 
     - name: Build and push
       uses: docker/build-push-action@v5
       with:
         context: brokers/${{ matrix.component }}
         push: ${{ github.event_name != 'pull_request' }}
-        build-args: |
-          EXTRA_CARGO_ARGS=--release
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
-        file: build/brokers/Dockerfile.rust
+        file: build/brokers/Dockerfile.opcua-monitoring-broker
         platforms: linux/amd64,linux/arm64,linux/arm/v7
