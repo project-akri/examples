@@ -61,7 +61,10 @@ onvif-video-broker: onvif-video-broker-multiarch
 
 onvif-video-broker-multiarch: onvif-video-broker-amd64 onvif-video-broker-arm64 onvif-video-broker-arm32
 ifeq (1, $(PUSH))
-	docker buildx imagetools create --tag "$(PREFIX)/onvif-video-broker:$(LABEL_PREFIX)"
+	docker buildx imagetools create --tag "$(PREFIX)/onvif-video-broker:$(LABEL_PREFIX)" \
+		$$(for f in onvif-video-broker.sha-amd64 onvif-video-broker.sha-arm64 onvif-video-broker.sha-arm32; do \
+			[ -f "$$f" ] && echo "$(PREFIX)/onvif-video-broker@$$(cat $$f)"; \
+		done)
 endif
 
 ONVIF_BUILDX_PUSH_OUTPUT = type=image,name=$(PREFIX)/onvif-video-broker,push-by-digest=true,name-canonical=true,push=true
