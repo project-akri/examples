@@ -61,25 +61,30 @@ onvif-video-broker: onvif-video-broker-multiarch
 
 onvif-video-broker-multiarch: onvif-video-broker-amd64 onvif-video-broker-arm64 onvif-video-broker-arm32
 ifeq (1, $(PUSH))
-	docker buildx imagetools create --tag "$(PREFIX)/onvif-video-broker:$(LABEL_PREFIX)"
+	docker buildx imagetools create --tag "$(PREFIX)/onvif-video-broker:$(LABEL_PREFIX)" \
+		$$(for f in onvif-video-broker.meta-amd64.json onvif-video-broker.meta-arm64.json onvif-video-broker.meta-arm32.json; do \
+			[ -f "$$f" ] || continue; \
+			d=$$(sed -n 's/.*"containerimage\.digest"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$$f"); \
+			[ -n "$$d" ] && echo "$(PREFIX)/onvif-video-broker@$$d"; \
+		done)
 endif
 
 ONVIF_BUILDX_PUSH_OUTPUT = type=image,name=$(PREFIX)/onvif-video-broker,push-by-digest=true,name-canonical=true,push=true
 ONVIF_BUILDX_ARGS = $(if $(LOAD), --load --tag $(PREFIX)/onvif-video-broker:$(LABEL_PREFIX)) $(if $(PUSH), --output $(ONVIF_BUILDX_PUSH_OUTPUT)) -f build/brokers/Dockerfile.onvif-video-broker
 
 onvif-video-broker-amd64:
-ifneq (,or(findstring(amd64,$(PLATFORMS)), findstring(x86_64,$(PLATFORMS))))
-	docker buildx build $(ONVIF_BUILDX_ARGS) $(if $(PUSH), --iidfile onvif-video-broker.sha-amd64) --build-arg OUTPUT_PLATFORM_TAG=$(USE_OPENCV_BASE_VERSION)-$(AMD64_SUFFIX) --build-arg DOTNET_PUBLISH_RUNTIME=linux-x64 .
+ifneq (,$(or $(findstring amd64,$(PLATFORMS)),$(findstring x86_64,$(PLATFORMS))))
+	docker buildx build $(ONVIF_BUILDX_ARGS) --platform linux/amd64 $(if $(PUSH), --metadata-file onvif-video-broker.meta-amd64.json) --build-arg OUTPUT_PLATFORM_TAG=$(USE_OPENCV_BASE_VERSION)-$(AMD64_SUFFIX) --build-arg DOTNET_PUBLISH_RUNTIME=linux-x64 .
 endif
 
 onvif-video-broker-arm32:
-ifneq (,findstring(arm/v7,$(PLATFORMS)))
-	docker buildx build $(ONVIF_BUILDX_ARGS) $(if $(PUSH), --iidfile onvif-video-broker.sha-arm32) --build-arg OUTPUT_PLATFORM_TAG=$(USE_OPENCV_BASE_VERSION)-$(ARM32V7_SUFFIX) --build-arg DOTNET_PUBLISH_RUNTIME=linux-arm .
+ifneq (,$(findstring arm/v7,$(PLATFORMS)))
+	docker buildx build $(ONVIF_BUILDX_ARGS) --platform linux/arm/v7 $(if $(PUSH), --metadata-file onvif-video-broker.meta-arm32.json) --build-arg OUTPUT_PLATFORM_TAG=$(USE_OPENCV_BASE_VERSION)-$(ARM32V7_SUFFIX) --build-arg DOTNET_PUBLISH_RUNTIME=linux-arm .
 endif
 
 onvif-video-broker-arm64:
-ifneq (,or(findstring(aarch64,$(PLATFORMS)),findstring(arm64,$(PLATFORMS))))
-	docker buildx build $(ONVIF_BUILDX_ARGS) $(if $(PUSH), --iidfile onvif-video-broker.sha-arm64) --build-arg OUTPUT_PLATFORM_TAG=$(USE_OPENCV_BASE_VERSION)-$(ARM64V8_SUFFIX) --build-arg DOTNET_PUBLISH_RUNTIME=linux-arm64 .
+ifneq (,$(or $(findstring aarch64,$(PLATFORMS)),$(findstring arm64,$(PLATFORMS))))
+	docker buildx build $(ONVIF_BUILDX_ARGS) --platform linux/arm64 $(if $(PUSH), --metadata-file onvif-video-broker.meta-arm64.json) --build-arg OUTPUT_PLATFORM_TAG=$(USE_OPENCV_BASE_VERSION)-$(ARM64V8_SUFFIX) --build-arg DOTNET_PUBLISH_RUNTIME=linux-arm64 .
 endif
 
 opcua-monitoring-broker:

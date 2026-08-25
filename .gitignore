@@ -5,3 +5,6 @@
 .idea
 *.pyc
 pki/*
+
+# buildx metadata emitted by the onvif multi-arch build
+onvif-video-broker.meta-*.json

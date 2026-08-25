@@ -2,7 +2,9 @@ ARG BUILD_PLATFORM_TAG=3.1-bullseye
 ARG OUTPUT_PLATFORM_TAG=3.1-bullseye-slim
 ARG DOTNET_PUBLISH_RUNTIME=linux-x64
 
-FROM mcr.microsoft.com/dotnet/sdk:${BUILD_PLATFORM_TAG} AS build
+# Build on the native builder platform and cross-compile for the target arch via
+# `dotnet publish -r $DOTNET_PUBLISH_RUNTIME`; avoids emulating the SDK stage.
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:${BUILD_PLATFORM_TAG} AS build
 ARG BUILD_PLATFORM_TAG
 RUN echo "Build base image: mcr.microsoft.com/dotnet/sdk:${BUILD_PLATFORM_TAG}"
 
