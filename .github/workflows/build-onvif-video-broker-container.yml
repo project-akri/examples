@@ -60,5 +60,28 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build and push
+      env:
+        VERSION: ${{ steps.version-string.outputs.version }}
+        RELEASE_TAG: ${{ github.event.release.tag_name }}
       run: |
-        make onvif-video-broker PREFIX=ghcr.io/project-akri/examples $(${{ github.event_name != 'pull_request' }} && echo "PUSH=1")
+        if [ "${{ github.event_name }}" = "release" ]; then
+          LABEL_PREFIX="${RELEASE_TAG:-v${VERSION}}"
+        else
+          LABEL_PREFIX="v${VERSION}-dev"
+        fi
+        echo "Publishing onvif-video-broker with tag: ${LABEL_PREFIX}"
+        make onvif-video-broker PREFIX=ghcr.io/project-akri/examples LABEL_PREFIX="${LABEL_PREFIX}" $(${{ github.event_name != 'pull_request' }} && echo "PUSH=1")
+
+        if [ "${{ github.event_name }}" = "release" ]; then
+          IMAGE="ghcr.io/project-akri/examples/onvif-video-broker"
+          if echo "${LABEL_PREFIX}" | grep -qE '^v?[0-9]+\.[0-9]+\.[0-9]+$'; then
+            MAJOR_MINOR="$(echo "${LABEL_PREFIX}" | sed -nE 's/^v?([0-9]+\.[0-9]+)\..*/v\1/p')"
+            echo "Adding release tags: ${MAJOR_MINOR}, latest"
+            docker buildx imagetools create \
+              --tag "${IMAGE}:${MAJOR_MINOR}" \
+              --tag "${IMAGE}:latest" \
+              "${IMAGE}:${LABEL_PREFIX}"
+          else
+            echo "::notice::${LABEL_PREFIX} is a pre-release or non-semver tag; publishing it alone (no vMAJOR.MINOR, no latest)"
+          fi
+        fi
